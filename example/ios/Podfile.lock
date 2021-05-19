@@ -1,0 +1,45 @@
+PODS:
+  - Ably (1.2.4):
+    - AblyDeltaCodec (= 1.2.0)
+    - msgpack (= 0.3.1)
+    - SocketRocketAblyFork (= 0.5.2-ably-8)
+    - ULID (= 1.1.0)
+  - AblyDeltaCodec (1.2.0)
+  - dara_ably (0.0.1):
+    - Ably
+    - Flutter
+  - Flutter (1.0.0)
+  - msgpack (0.3.1)
+  - SocketRocketAblyFork (0.5.2-ably-8)
+  - ULID (1.1.0)
+
+DEPENDENCIES:
+  - dara_ably (from `.symlinks/plugins/dara_ably/ios`)
+  - Flutter (from `Flutter`)
+
+SPEC REPOS:
+  trunk:
+    - Ably
+    - AblyDeltaCodec
+    - msgpack
+    - SocketRocketAblyFork
+    - ULID
+
+EXTERNAL SOURCES:
+  dara_ably:
+    :path: ".symlinks/plugins/dara_ably/ios"
+  Flutter:
+    :path: Flutter
+
+SPEC CHECKSUMS:
+  Ably: 863d35bb6a6aa5fc537304ef19f85cfa51d1bbde
+  AblyDeltaCodec: 6123f31df5b04a0f5452968505a46ba16a9eb689
+  dara_ably: ff84d861bdbeb21f4f67f751ee1604f7a7a72cdd
+  Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
+  msgpack: a14de9216d29cfd0a7aff5af5150601a27e899a4
+  SocketRocketAblyFork: e6e3d820bf8ff9e6265d2af81b9f11f270351ea6
+  ULID: b4714891a02819364faecd574a53e391c4c6de9d
+
+PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c
+
+COCOAPODS: 1.10.1
