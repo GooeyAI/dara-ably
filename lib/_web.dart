@@ -9,7 +9,7 @@ import 'package:js/js.dart';
 
 class Realtime {
   final String clientId;
-  final Function authCallback;
+  final void Function(void Function(String)) authCallback;
 
   Realtime({
     required this.clientId,
@@ -19,7 +19,11 @@ class Realtime {
   late _Realtime _delegate = _Realtime(
     ClientOptions(
       clientId: clientId,
-      authCallback: allowInterop(authCallback),
+      authCallback: allowInterop((_, tokenCallback) async {
+        authCallback((token) {
+          tokenCallback(null, token);
+        });
+      }),
     ),
   );
 
