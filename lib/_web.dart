@@ -7,6 +7,8 @@ import 'dart:typed_data';
 
 import 'package:js/js.dart';
 
+import 'common.dart';
+
 class Realtime {
   final String clientId;
   final void Function(void Function(String)) authCallback;
@@ -37,8 +39,8 @@ class Connection {
 
   Connection(this._delegate);
 
-  void on(String event, VoidCallback callback) {
-    _delegate.on(event, allowInterop((_) {
+  void on(VoidCallback callback) {
+    _delegate.on(allowInterop((_) {
       callback();
     }));
   }
@@ -47,7 +49,12 @@ class Connection {
     _delegate.close();
   }
 
-  String get state => _delegate.state;
+  ConnectionState get state => _connectionStateNames[_delegate.state]!;
+
+  static final _connectionStateNames = {
+    for (ConnectionState entry in ConnectionState.values)
+      entry.toString().split(".")[1]: entry
+  };
 }
 
 class Channels {

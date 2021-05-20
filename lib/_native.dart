@@ -6,18 +6,9 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-final platform = _Platform();
+import 'common.dart';
 
-enum ConnectionState {
-  initialized,
-  connecting,
-  connected,
-  disconnected,
-  suspended,
-  closing,
-  closed,
-  failed
-}
+final platform = _Platform();
 
 class _Platform {
   final MethodChannel _channel = const MethodChannel('network.dara.dara_ably');
@@ -46,7 +37,7 @@ class _Platform {
     try {
       await _handlers[call.method]?.call(call.arguments);
     } catch (e, stack) {
-      print("${e.runtimeType}: ${e}\n${stack}");
+      print("${e.runtimeType}: $e\n$stack");
       FlutterError.reportError(FlutterErrorDetails(exception: e, stack: stack));
     }
   }
