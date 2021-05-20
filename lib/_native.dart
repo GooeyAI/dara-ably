@@ -1,34 +1,58 @@
 import 'dart:async';
+import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 final platform = _Platform();
 
-typedef FutureOr<void> MethodCallHandler(Map args);
-
-typedef Future InvokeMethod(String method, [Map args]);
+enum ConnectionState {
+  initialized,
+  connecting,
+  connected,
+  disconnected,
+  suspended,
+  closing,
+  closed,
+  failed
+}
 
 class _Platform {
   final MethodChannel _channel = const MethodChannel('network.dara.dara_ably');
   final Map<String, MethodCallHandler> _handlers = {};
-  late InvokeMethod invokeMethod = _channel.invokeMethod;
+
+  Future<void> invokeMethod({
+    required int rtHashCode,
+    required String method,
+    Map<String, dynamic> args = const {},
+  }) async {
+    args.putIfAbsent('rtHashCode', () => rtHashCode);
+    await _channel.invokeMethod(method, args);
+  }
 
   _Platform() {
     _channel.setMethodCallHandler(methodCallHandler);
   }
 
   String allowInterop(MethodCallHandler handler) {
-    String name = "callbacks/$hashCode";
+    String name = "dartCallbacks/${Random().nextDouble()}";
     _handlers[name] = handler;
     return name;
   }
 
   Future<void> methodCallHandler(MethodCall call) async {
-    await _handlers[call.method]?.call(call.arguments);
+    try {
+      await _handlers[call.method]?.call(call.arguments);
+    } catch (e, stack) {
+      print("${e.runtimeType}: ${e}\n${stack}");
+      FlutterError.reportError(FlutterErrorDetails(exception: e, stack: stack));
+    }
   }
 }
+
+typedef FutureOr<void> MethodCallHandler(Map args);
 
 class Realtime {
   final String clientId;
@@ -42,54 +66,64 @@ class Realtime {
     required this.clientId,
     required this.authCallback,
   }) {
-    platform.invokeMethod("Realtime()", {
-      "clientId": clientId,
-      "authCallback": platform.allowInterop(_authCallback),
-    });
+    platform.invokeMethod(
+      rtHashCode: hashCode,
+      method: "Realtime()",
+      args: {
+        "clientId": clientId,
+        "authCallback": platform.allowInterop(_authCallback),
+      },
+    );
     connection = Connection(hashCode);
     channels = Channels(hashCode);
   }
 
   void _authCallback(Map args) {
-    authCallback((token) {
-      platform.invokeMethod(args['tokenCallback'], {
-        'token': token,
-      });
-    });
+    void tokenCallback(String token) {
+      platform.invokeMethod(
+        rtHashCode: hashCode,
+        method: args['tokenCallback'],
+        args: {
+          'token': token,
+        },
+      );
+    }
+
+    authCallback(tokenCallback);
   }
 }
 
 class Connection {
   final int _rtHashCode;
-  String state = "initialized";
-  Map<String, Set<VoidCallback>> _stateCallbacks = {};
+  ConnectionState state = ConnectionState.initialized;
+  Set<VoidCallback> _stateCallbacks = {};
 
   Connection(this._rtHashCode) {
-    platform.invokeMethod("Connection()", {
-      "stateCallback": platform.allowInterop(_stateCallback),
-    });
+    platform.invokeMethod(
+      rtHashCode: _rtHashCode,
+      method: "Connection()",
+      args: {
+        "stateCallback": platform.allowInterop(_stateCallback),
+      },
+    );
   }
 
-  FutureOr<void> _stateCallback(args) {
-    state = args['value'];
-    for (MapEntry<String, Set<VoidCallback>> entry in _stateCallbacks.entries) {
-      if (entry.key == state) {
-        for (VoidCallback callback in entry.value) {
-          callback();
-        }
-      }
+  FutureOr<void> _stateCallback(Map args) {
+    state = ConnectionState.values[args['state']];
+    for (VoidCallback callback in _stateCallbacks) {
+      callback();
     }
   }
 
   void close() {
-    platform.invokeMethod("Connection.close()", {
-      "rtHashCode": _rtHashCode,
-    });
+    platform.invokeMethod(
+      rtHashCode: _rtHashCode,
+      method: "Connection.close()",
+    );
   }
 
-  void on(String event, VoidCallback callback) {
-    _stateCallbacks.putIfAbsent(event, () => {});
-    _stateCallbacks[event]!.add(callback);
+  void on(VoidCallback callback) {
+    _stateCallbacks.add(callback);
   }
 }
 
@@ -108,26 +142,38 @@ class Channel {
   Channel(this._name, this._rtHashCode);
 
   void publish(String name, Uint8List data) {
-    platform.invokeMethod("Channel.publish()", {
-      "rtHashCode": _rtHashCode,
-      "name": name,
-      "data": data,
-    });
+    platform.invokeMethod(
+      rtHashCode: _rtHashCode,
+      method: "Channel.publish()",
+      args: {
+        "channelName": _name,
+        "eventName": name,
+        "data": data,
+      },
+    );
   }
 
   void subscribe(MessageListener listener) {
-    platform.invokeMethod("Channel.subscribe()", {
-      "rtHashCode": _rtHashCode,
-      "listener": platform.allowInterop((args) {
-        listener(Message(args['data']));
-      }),
-    });
+    platform.invokeMethod(
+      rtHashCode: _rtHashCode,
+      method: "Channel.subscribe()",
+      args: {
+        "channelName": _name,
+        "listener": platform.allowInterop((Map args) {
+          listener(Message(args['data']));
+        }),
+      },
+    );
   }
 
   void unsubscribe() {
-    platform.invokeMethod("Channel.unsubscribe()", {
-      "rtHashCode": _rtHashCode,
-    });
+    platform.invokeMethod(
+      rtHashCode: _rtHashCode,
+      method: "Channel.unsubscribe()",
+      args: {
+        "channelName": _name,
+      },
+    );
   }
 }
 
