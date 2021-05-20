@@ -38,6 +38,8 @@ public class SwiftDaraAblyPlugin: NSObject, FlutterPlugin {
             connectionInit(args, rtHashCode)
         case "Connection.close()":
             connectionClose(args, rtHashCode)
+        case "Channel()":
+            channelInit(args, rtHashCode)
         case "Channel.publish()":
             channelPublish(args, rtHashCode)
         case "Channel.subscribe()":
@@ -75,7 +77,7 @@ public class SwiftDaraAblyPlugin: NSObject, FlutterPlugin {
             realtime.connection.on { _stateChange in
                 if let stateChange = _stateChange {
                     self.channel.invokeMethod(stateCallback, arguments: [
-                        "state": stateChange.current.rawValue,
+                        "state": connectionStateName(stateChange.current),
                     ])
                 }
             }
@@ -98,7 +100,23 @@ public class SwiftDaraAblyPlugin: NSObject, FlutterPlugin {
             channel.publish(eventName, data: data.data)
         }
     }
-
+    
+    func channelInit(_ args: Args, _ rtHashCode: Int) {
+        let channelName = args["channelName"] as! String
+        let stateCallback = args["stateCallback"] as! String
+        
+        if let realtime = instances[rtHashCode] {
+            let channel = realtime.channels.get(channelName)
+            channel.on { _stateChange in
+                if let stateChange = _stateChange {
+                    self.channel.invokeMethod(stateCallback, arguments: [
+                        "state": channelStateName(stateChange.current),
+                    ])
+                }
+            }
+        }
+    }
+    
     func channelSubscribe(_ args: Args, _ rtHashCode: Int) {
         let channelName = args["channelName"] as! String
         let listener = args["listener"] as! String
@@ -126,5 +144,32 @@ public class SwiftDaraAblyPlugin: NSObject, FlutterPlugin {
         let name = "swiftCallbacks/\(Double.random(in: 0 ... 1))"
         callbacks[name] = fn
         return name
+    }
+}
+
+func connectionStateName(_ state: ARTRealtimeConnectionState) -> String {
+    switch state {
+    case .initialized: return "initialized"
+    case .connecting: return "connecting"
+    case .connected: return "connected"
+    case .disconnected: return "disconnected"
+    case .suspended: return "disconnected"
+    case .closing: return "closing"
+    case .closed: return "closed"
+    case .failed: return "failed"
+    @unknown default: return ""
+    }
+}
+
+func channelStateName(_ state: ARTRealtimeChannelState) -> String {
+    switch state {
+    case .initialized: return "initialized"
+    case .attaching: return "attaching"
+    case .attached: return "attached"
+    case .detaching: return "detaching"
+    case .detached: return "detached"
+    case .suspended: return "suspended"
+    case .failed: return "failed"
+    @unknown default: return ""
     }
 }

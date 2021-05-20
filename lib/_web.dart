@@ -39,6 +39,8 @@ class Connection {
 
   Connection(this._delegate);
 
+  ConnectionState get state => connectionStateNames[_delegate.state]!;
+
   void on(VoidCallback callback) {
     _delegate.on(allowInterop((_) {
       callback();
@@ -48,13 +50,6 @@ class Connection {
   void close() {
     _delegate.close();
   }
-
-  ConnectionState get state => _connectionStateNames[_delegate.state]!;
-
-  static final _connectionStateNames = {
-    for (ConnectionState entry in ConnectionState.values)
-      entry.toString().split(".")[1]: entry
-  };
 }
 
 class Channels {
@@ -69,6 +64,14 @@ class Channel {
   final _Channel _delegate;
 
   Channel(this._delegate);
+
+  ChannelState get state => channelStateNames[_delegate.state]!;
+
+  void on(VoidCallback callback) {
+    _delegate.on(allowInterop((_) {
+      callback();
+    }));
+  }
 
   void publish(String name, Uint8List data) {
     _delegate.publish(name, data.buffer);
@@ -107,11 +110,11 @@ class _Realtime {
 @JS()
 @anonymous
 class _Connection {
+  external String get state;
+
   external Function get on;
 
   external Function get close;
-
-  external String get state;
 }
 
 @JS()
@@ -123,11 +126,15 @@ class _Channels {
 @JS()
 @anonymous
 class _Channel {
+  external String get state;
+
   external Function get publish;
 
   external Function get subscribe;
 
   external Function get unsubscribe;
+
+  external Function get on;
 }
 
 @JS()

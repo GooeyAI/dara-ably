@@ -100,10 +100,14 @@ class Connection {
   }
 
   FutureOr<void> _stateCallback(Map args) {
-    state = ConnectionState.values[args['state']];
+    state = connectionStateNames[args['state']]!;
     for (VoidCallback callback in _stateCallbacks) {
       callback();
     }
+  }
+
+  void on(VoidCallback callback) {
+    _stateCallbacks.add(callback);
   }
 
   void close() {
@@ -111,10 +115,6 @@ class Connection {
       rtHashCode: _rtHashCode,
       method: "Connection.close()",
     );
-  }
-
-  void on(VoidCallback callback) {
-    _stateCallbacks.add(callback);
   }
 }
 
@@ -129,8 +129,30 @@ class Channels {
 class Channel {
   final String _name;
   final int _rtHashCode;
+  ChannelState state = ChannelState.initialized;
+  Set<VoidCallback> _stateCallbacks = {};
 
-  Channel(this._name, this._rtHashCode);
+  Channel(this._name, this._rtHashCode) {
+    platform.invokeMethod(
+      rtHashCode: _rtHashCode,
+      method: "Channel()",
+      args: {
+        "channelName": _name,
+        "stateCallback": platform.allowInterop(_stateCallback),
+      },
+    );
+  }
+
+  FutureOr<void> _stateCallback(Map args) {
+    state = channelStateNames[args['state']]!;
+    for (VoidCallback callback in _stateCallbacks) {
+      callback();
+    }
+  }
+
+  void on(VoidCallback callback) {
+    _stateCallbacks.add(callback);
+  }
 
   void publish(String name, Uint8List data) {
     platform.invokeMethod(
