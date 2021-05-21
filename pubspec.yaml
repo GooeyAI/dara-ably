@@ -1,6 +1,6 @@
 name: dara_ably
 description: A new flutter plugin project.
-version: 0.2.0
+version: 0.3.0
 homepage: https://github.com/dara-network/dara-ably
 
 environment:
