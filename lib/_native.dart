@@ -17,8 +17,9 @@ class _Platform {
   Future<void> invokeMethod({
     required int rtHashCode,
     required String method,
-    Map<String, dynamic> args = const {},
+    Map<String, dynamic>? args,
   }) async {
+    args ??= {};
     args.putIfAbsent('rtHashCode', () => rtHashCode);
     await _channel.invokeMethod(method, args);
   }
