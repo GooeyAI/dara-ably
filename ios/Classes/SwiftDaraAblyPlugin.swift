@@ -38,6 +38,8 @@ public class SwiftDaraAblyPlugin: NSObject, FlutterPlugin {
             connectionInit(args, rtHashCode)
         case "Connection.close()":
             connectionClose(args, rtHashCode)
+        case "Connection.connect()":
+            connectionConnect(args, rtHashCode)
         case "Channel()":
             channelInit(args, rtHashCode)
         case "Channel.publish()":
@@ -87,6 +89,12 @@ public class SwiftDaraAblyPlugin: NSObject, FlutterPlugin {
     func connectionClose(_ args: Args, _ rtHashCode: Int) {
         if let realtime = instances[rtHashCode] {
             realtime.connection.close()
+        }
+    }
+
+    func connectionConnect(_ args: Args, _ rtHashCode: Int) {
+        if let realtime = instances[rtHashCode] {
+            realtime.connection.connect()
         }
     }
 

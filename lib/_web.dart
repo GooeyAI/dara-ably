@@ -50,6 +50,10 @@ class Connection {
   void close() {
     _delegate.close();
   }
+
+  void connect() {
+    _delegate.connect();
+  }
 }
 
 class Channels {
@@ -115,6 +119,8 @@ class _Connection {
   external Function get on;
 
   external Function get close;
+
+  external Function get connect;
 }
 
 @JS()

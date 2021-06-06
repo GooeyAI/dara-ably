@@ -50,6 +50,7 @@ class DaraAblyPlugin : FlutterPlugin, MethodCallHandler {
             "Realtime()" -> realtimeInit(call, rtHashCode)
             "Connection()" -> connectionInit(call, rtHashCode)
             "Connection.close()" -> connectionClose(call, rtHashCode)
+            "Connection.connect()" -> connectionConnect(call, rtHashCode)
             "Channel()" -> channelInit(call, rtHashCode)
             "Channel.publish()" -> connectionPublish(call, rtHashCode)
             "Channel.subscribe()" -> connectionSubscribe(call, rtHashCode)
@@ -105,6 +106,12 @@ class DaraAblyPlugin : FlutterPlugin, MethodCallHandler {
     fun connectionClose(call: MethodCall, rtHashCode: Int) {
         instances[rtHashCode]?.let { realtime ->
             realtime.connection.close()
+        }
+    }
+
+    fun connectionConnect(call: MethodCall, rtHashCode: Int) {
+        instances[rtHashCode]?.let { realtime ->
+            realtime.connection.connect()
         }
     }
 

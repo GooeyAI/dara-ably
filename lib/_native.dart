@@ -117,6 +117,13 @@ class Connection {
       method: "Connection.close()",
     );
   }
+
+  void connect() {
+    platform.invokeMethod(
+      rtHashCode: _rtHashCode,
+      method: "Connection.connect()",
+    );
+  }
 }
 
 class Channels {
